@@ -4,6 +4,7 @@ import { login } from "@/actions/login"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { LoginSchema } from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -15,6 +16,9 @@ import { CardWrapper } from "./card-wrapper"
 export function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | undefined>()
+
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider" : undefined
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -68,7 +72,7 @@ export function LoginForm() {
               )}
             />
           </div>
-          {error && <FormError message={error} />}
+          <FormError message={error || urlError} />
           <Button type="submit" className="w-full" disabled={isPending}>Login</Button>
         </form>
       </Form>

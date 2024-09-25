@@ -101,8 +101,8 @@ export function RegisterForm() {
               )}
             />
           </div>
-          {error && <FormError message={error} />}
-          {success && <FormSuccess message={success} />}
+          <FormError message={error} />
+          <FormSuccess message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>Create an account</Button>
         </form>
       </Form>
