@@ -1,22 +1,20 @@
 "use client"
 
-import { CardWrapper } from "./card-wrapper"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { login } from "@/actions/login"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { LoginSchema } from "@/schemas"
-import { z } from "zod"
-import { Input } from "../ui/input"
-import { Button } from "../ui/button"
-import { FormError } from "../form-error"
-import { FormSuccess } from "../form-success"
-import { login } from "@/actions/login"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useTransition } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { FormError } from "../form-error"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import { CardWrapper } from "./card-wrapper"
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | undefined>()
-  const [success, setSuccess] = useState<string | undefined>()
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -28,14 +26,11 @@ export function LoginForm() {
 
   const onSubmit = (data: z.infer<typeof LoginSchema>) => {
     setError(undefined)
-    setSuccess(undefined)
 
     startTransition(() => {
       login(data).then((res) => {
-        if (res.error) {
+        if (res && res.error) {
           setError(res.error)
-        } else {
-          setSuccess(res.success)
         }
       })
     })
@@ -74,7 +69,6 @@ export function LoginForm() {
             />
           </div>
           {error && <FormError message={error} />}
-          {success && <FormSuccess message={success} />}
           <Button type="submit" className="w-full" disabled={isPending}>Login</Button>
         </form>
       </Form>
