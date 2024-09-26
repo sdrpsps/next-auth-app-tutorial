@@ -1,9 +1,12 @@
 "use server"
 
 import { signIn } from "@/auth"
+import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confimation"
+import { getTwoFactorTokenByEmail } from "@/data/two-factor-token"
 import { getUserByEmail } from "@/data/user"
-import { sendVerificationEmail } from "@/lib/email"
-import { generateVerificationToken } from "@/lib/tokens"
+import { db } from "@/lib/db"
+import { sendTwoFactorEmail, sendVerificationEmail } from "@/lib/email"
+import { generateTwoFactorToken, generateVerificationToken } from "@/lib/tokens"
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes"
 import { LoginSchema } from "@/schemas"
 import { AuthError } from "next-auth"
@@ -18,7 +21,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
     }
   }
 
-  const { email, password } = validatedFields.data
+  const { email, password, code } = validatedFields.data
 
   const existingUser = await getUserByEmail(email)
 
@@ -34,6 +37,56 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 
     return {
       success: "Confirmation email sent",
+    }
+  }
+
+  if (existingUser.isTwoFactorEnabled) {
+    if (code) {
+      const twoFactorToken = await getTwoFactorTokenByEmail(email)
+
+      if (twoFactorToken?.token !== code) {
+        return {
+          error: "Invalid code",
+        }
+      }
+
+      const hasExpired = twoFactorToken?.expires < new Date()
+
+      if (hasExpired) {
+        return {
+          error: "Code expired",
+        }
+      }
+
+      await db.twoFactorToken.delete({
+        where: {
+          id: twoFactorToken.id
+        }
+      })
+
+      const existingConfirmation = await getTwoFactorConfirmationByUserId(email)
+
+      if (existingConfirmation) {
+        await db.twoFactorConfirmation.delete({
+          where: {
+            id: existingConfirmation.id
+          }
+        })
+      }
+
+      await db.twoFactorConfirmation.create({
+        data: {
+          userId: existingUser.id
+        }
+      })
+    } else {
+      const twoFactorToken = await generateTwoFactorToken(email)
+      await sendTwoFactorEmail(twoFactorToken.email, twoFactorToken.token)
+
+      return {
+        success: "Two factor email sent",
+        twoFactor: true
+      }
     }
   }
 
