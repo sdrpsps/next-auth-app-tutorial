@@ -5,8 +5,6 @@ import { getVerificationTokenByToken } from "@/data/verification-token"
 import { db } from "@/lib/db"
 
 export async function newVerification(token: string) {
-  console.log(token);
-
   const existingToken = await getVerificationTokenByToken(token)
 
   if (!existingToken) {

@@ -14,7 +14,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetLink = `${process.env.RESEND_DOMAIN}/auth/reset?new-password=${token}`
+  const resetLink = `${process.env.RESEND_DOMAIN}/auth/new-password?token=${token}`
 
   await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL,

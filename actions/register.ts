@@ -19,7 +19,6 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
 
   const { email, password, name } = validatedFields.data
 
-  const hashedPassword = await hash(password, 10)
 
   const existingUser = await getUserByEmail(email)
 
@@ -28,6 +27,8 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
       error: "Email already exists",
     }
   }
+
+  const hashedPassword = await hash(password, 10)
 
   await db.user.create({
     data: {
