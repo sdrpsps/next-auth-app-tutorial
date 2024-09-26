@@ -12,10 +12,12 @@ import { FormError } from "../form-error"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { CardWrapper } from "./card-wrapper"
+import { FormSuccess } from "../form-success"
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | undefined>()
+  const [success, setSuccess] = useState<string | undefined>()
 
   const searchParams = useSearchParams()
   const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider" : undefined
@@ -33,9 +35,8 @@ export function LoginForm() {
 
     startTransition(() => {
       login(data).then((res) => {
-        if (res && res.error) {
-          setError(res.error)
-        }
+        setError(res?.error)
+        setSuccess(res?.success)
       })
     })
   }
@@ -73,6 +74,7 @@ export function LoginForm() {
             />
           </div>
           <FormError message={error || urlError} />
+          <FormSuccess message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>Login</Button>
         </form>
       </Form>
