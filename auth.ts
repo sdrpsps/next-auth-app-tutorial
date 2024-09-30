@@ -5,11 +5,13 @@ import authConfig from "./auth.config"
 import { getTwoFactorConfirmationByUserId } from "./data/two-factor-confimation"
 import { getUserById } from "./data/user"
 import { db } from "./lib/db"
+import { getAccountByUserId } from "./data/account"
 
 export type ExtendedUser = {
   id: string
   role: UserRole
   isTwoFactorEnabled: boolean
+  isOAuth: boolean
 } & DefaultSession["user"]
 
 declare module "next-auth" {
@@ -18,7 +20,7 @@ declare module "next-auth" {
   }
 }
 
-export const { auth, handlers, signIn, signOut } = NextAuth({
+export const { auth, handlers, signIn, signOut, unstable_update } = NextAuth({
   pages: {
     signIn: "/auth/login",
     error: "/auth/error"
@@ -64,6 +66,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.id = token.sub;
       }
 
+      if (session.user && token.isOAuth) {
+        session.user.isOAuth = token.isOAuth as boolean;
+      }
+
+      if (session.user && token.name) {
+        session.user.name = token.name;
+      }
+
+      if (session.user && token.email) {
+        session.user.email = token.email;
+      }
+
       if (session.user && token.role) {
         session.user.role = token.role as UserRole;
       }
@@ -81,6 +95,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (!existingUser) return token
 
+      const existingAccount = await getAccountByUserId(existingUser.id)
+
+      token.isOAuth = !!existingAccount
+
+      token.name = existingUser.name;
+      token.email = existingUser.email;
       token.role = existingUser.role;
       token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
 

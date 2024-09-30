@@ -1,3 +1,4 @@
+import { UserRole } from "@prisma/client";
 import { z } from "zod"
 
 export const LoginSchema = z.object({
@@ -23,14 +24,14 @@ export const RegisterSchema = z.object({
   confirmPassword: z.string().min(6, {
     message: "Password must be at least 6 characters!"
   })
-}).superRefine(({ confirmPassword, password }, ctx) => {
-  if (confirmPassword !== password) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "The passwords do not match",
-      path: ['confirmPassword']
-    });
+}).refine(({ password, confirmPassword }) => {
+  if (password && confirmPassword && password !== confirmPassword) {
+    return false
   }
+  return true
+}, {
+  message: "The passwords do not match",
+  path: ['confirmPassword']
 })
 
 export const ResetSchema = z.object({
@@ -46,12 +47,43 @@ export const NewPasswordSchema = z.object({
   confirmPassword: z.string().min(6, {
     message: "Password must be at least 6 characters!"
   })
-}).superRefine(({ confirmPassword, password }, ctx) => {
-  if (confirmPassword !== password) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "The passwords do not match",
-      path: ['confirmPassword']
-    });
+}).refine(({ password, confirmPassword }) => {
+  if (password && confirmPassword && password !== confirmPassword) {
+    return false
   }
-});
+  return true
+}, {
+  message: "The passwords do not match",
+  path: ['confirmPassword']
+})
+
+export const SettingsSchema = z.object({
+  name: z.optional(z.string()),
+  isTwoFactorEnabled: z.optional(z.boolean()),
+  role: z.enum([UserRole.ADMIN, UserRole.USER]),
+  email: z.optional(z.string().email()),
+  password: z.optional(z.string().min(6, {
+    message: "Password must be at least 6 characters!"
+  })),
+  newPassword: z.optional(z.string().min(6, {
+    message: "Password must be at least 6 characters!"
+  }))
+}).refine(({ password, newPassword }) => {
+  if (password && !newPassword) {
+    return false
+  }
+
+  return true
+}, {
+  message: 'New password is required',
+  path: ['newPassword']
+}).refine(({ password, newPassword }) => {
+  if (!password && newPassword) {
+    return false
+  }
+
+  return true
+}, {
+  message: 'password is required',
+  path: ['password']
+})
