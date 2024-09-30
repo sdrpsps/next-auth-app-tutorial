@@ -22,6 +22,7 @@ export function LoginForm() {
   const [twoFactor, setTwoFactor] = useState<boolean | undefined>()
 
   const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
   const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider" : undefined
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -34,9 +35,10 @@ export function LoginForm() {
 
   const onSubmit = (data: z.infer<typeof LoginSchema>) => {
     setError(undefined)
+    setSuccess(undefined)
 
     startTransition(() => {
-      login(data).then((res) => {
+      login(data, callbackUrl).then((res) => {
         setError(res?.error)
         setSuccess(res?.success)
         setTwoFactor(res?.twoFactor)

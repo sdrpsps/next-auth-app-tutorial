@@ -13,9 +13,12 @@ export default function Home() {
       <div className="space-y-6 text-center">
         <h1 className={cn(poppins.className, "text-6xl font-semibold text-white drop-shadow-md")}>🔐 Auth</h1>
         <p className="text-xl text-white drop-shadow-md">A simple authentication service</p>
-        <div>
-          <LoginButton >
-            <Button size="lg" variant="secondary">Sign in</Button>
+        <div className="flex gap-4">
+          <LoginButton mode="redirect" asChild>
+            <Button size="lg" variant="secondary">Sign in (Redirect)</Button>
+          </LoginButton>
+          <LoginButton mode="modal" asChild>
+            <Button size="lg" variant="secondary">Sign in (Dialog)</Button>
           </LoginButton>
         </div>
       </div>

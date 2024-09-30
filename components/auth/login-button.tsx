@@ -1,6 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { LoginForm } from "./login-form";
 
 interface LoginButtonProps {
   children: React.ReactNode;
@@ -8,7 +10,7 @@ interface LoginButtonProps {
   asChild?: boolean
 }
 
-export const LoginButton = ({ children, mode = "redirect" }: LoginButtonProps) => {
+export const LoginButton = ({ children, mode = "redirect", asChild }: LoginButtonProps) => {
   const router = useRouter();
   const onClick = () => {
     router.push("/auth/login");
@@ -16,10 +18,17 @@ export const LoginButton = ({ children, mode = "redirect" }: LoginButtonProps) =
 
   if (mode === "modal") {
     return (
-      <span>TODO: Implement modal</span>
+      <Dialog>
+        <DialogTrigger asChild={asChild}>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="p-0 w-auto bg-transparent border-none">
+          <DialogTitle />
+          <DialogDescription />
+          <LoginForm />
+        </DialogContent>
+      </Dialog>
     )
-  } else if (mode === "redirect") {
-    console.log("REDIRECTING");
   }
 
   return (
