@@ -6,12 +6,15 @@ import { getTwoFactorConfirmationByUserId } from "./data/two-factor-confimation"
 import { getUserById } from "./data/user"
 import { db } from "./lib/db"
 
+export type ExtendedUser = {
+  id: string
+  role: UserRole
+  isTwoFactorEnabled: boolean
+} & DefaultSession["user"]
+
 declare module "next-auth" {
   interface Session {
-    user: {
-      id: string
-      role: UserRole
-    } & DefaultSession["user"]
+    user: ExtendedUser
   }
 }
 
@@ -65,6 +68,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.role = token.role as UserRole;
       }
 
+      if (session.user && token.isTwoFactorEnabled) {
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+      }
+
       return session;
     },
     async jwt({ token }) {
@@ -75,6 +82,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (!existingUser) return token
 
       token.role = existingUser.role;
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
 
       return token;
     }
